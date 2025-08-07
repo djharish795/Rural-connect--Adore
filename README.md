@@ -2,6 +2,11 @@
 
 A full-stack web application helping rural communities easily find and access essential products like groceries, medicines, and key support services.
 
+## 🌐 Live Demo
+**🚀 [View Live Application](https://djharish795.github.io/Rural-connect--Adore)**
+
+*Note: The live demo runs in static mode with sample data. All UI features work perfectly, including login/signup (demo mode), dashboard, and profile editing. For full backend functionality, please run the application locally.*
+
 ## 🚀 Tech Stack Used
 
 - **Frontend:** React.js with React Router
