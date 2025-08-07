@@ -8,14 +8,53 @@ const Dashboard = ({ auth }) => {
 
     useEffect(() => {
         const fetchBookings = async () => {
-            try {
-                const config = { headers: { 'x-auth-token': auth.token } };
-                const res = await axios.get(`/api/bookings/${auth.user.id}`, config);
-                setBookings(res.data);
-            } catch (error) {
-                console.error("Could not fetch bookings", error);
-            } finally {
+            const isProduction = window.location.hostname.includes('github.io');
+            
+            if (isProduction || auth.token === 'demo-token') {
+                // Demo data for GitHub Pages
+                const demoBookings = [
+                    {
+                        _id: 'demo1',
+                        bookingDate: new Date().toISOString(),
+                        products: [
+                            { _id: 'p1', name: 'Bread', quantity: 2 },
+                            { _id: 'p2', name: 'Milk', quantity: 1 }
+                        ]
+                    },
+                    {
+                        _id: 'demo2',
+                        bookingDate: new Date(Date.now() - 86400000).toISOString(), // Yesterday
+                        products: [
+                            { _id: 'p3', name: 'Rice (1kg)', quantity: 1 },
+                            { _id: 'p4', name: 'Soap', quantity: 3 }
+                        ]
+                    }
+                ];
+                setBookings(demoBookings);
                 setLoading(false);
+            } else {
+                // Development mode - try API
+                try {
+                    const config = { headers: { 'x-auth-token': auth.token } };
+                    const res = await axios.get(`/api/bookings/${auth.user.id}`, config);
+                    setBookings(res.data);
+                } catch (error) {
+                    console.error("Could not fetch bookings", error);
+                    // Fallback to demo data
+                    const demoBookings = [
+                        {
+                            _id: 'demo1',
+                            bookingDate: new Date().toISOString(),
+                            products: [
+                                { _id: 'p1', name: 'Bread', quantity: 2 },
+                                { _id: 'p2', name: 'Milk', quantity: 1 }
+                            ]
+                        }
+                    ];
+                    setBookings(demoBookings);
+                } finally {
+                    setLoading(false);
+                }
             }
         };
         if (auth.token) {

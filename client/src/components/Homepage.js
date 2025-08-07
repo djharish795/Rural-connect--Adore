@@ -10,13 +10,67 @@ const Homepage = () => {
     const [contactForm, setContactForm] = useState({ name: '', message: '' });
     const [formMessage, setFormMessage] = useState('');
 
+    // Static data for GitHub Pages deployment
+    const staticServices = [
+        { _id: '1', name: 'Grocery Delivery', iconUrl: 'grocery.png' },
+        { _id: '2', name: 'Medicine Supply', iconUrl: 'medicine.png' },
+        { _id: '3', name: 'Bill Payments', iconUrl: 'bill.png' },
+        { _id: '4', name: 'Agri-Support', iconUrl: 'agri.png' },
+        { _id: '5', name: 'Health Checkup', iconUrl: 'health.png' }
+    ];
+
+    const staticProducts = [
+        { _id: '1', name: 'Bread', price: 2.50, imageUrl: 'bread.png' },
+        { _id: '2', name: 'Milk', price: 1.50, imageUrl: 'milk.png' },
+        { _id: '3', name: 'Rice (1kg)', price: 3.00, imageUrl: 'rice.png' },
+        { _id: '4', name: 'Paracetamol', price: 0.50, imageUrl: 'paracetamol.png' },
+        { _id: '5', name: 'Fertilizer Seeds', price: 15.00, imageUrl: 'seeds.png' },
+        { _id: '6', name: 'Soap', price: 1.00, imageUrl: 'soap.png' }
+    ];
+
+    const staticNews = [
+        { headline: 'New Government Subsidy for Farmers Announced' },
+        { headline: 'Local Health Camp Scheduled for Next Sunday' },
+        { headline: 'Digital Literacy Program Launched in Nearby Village' }
+    ];
+
     useEffect(() => {
-        axios.get('/api/services').then(res => setServices(res.data));
-        axios.get('/api/products').then(res => {
-            setProducts(res.data);
-            setFilteredProducts(res.data);
-        });
-        axios.get('/api/news').then(res => setNews(res.data));
+        // Check if we're in production (GitHub Pages) or development
+        const isProduction = window.location.hostname.includes('github.io');
+        
+        if (isProduction) {
+            // Use static data for GitHub Pages deployment
+            setServices(staticServices);
+            setProducts(staticProducts);
+            setFilteredProducts(staticProducts);
+            setNews(staticNews);
+        } else {
+            // Use API calls for local development
+            axios.get('/api/services')
+                .then(res => setServices(res.data))
+                .catch(err => {
+                    console.log('API not available, using static data');
+                    setServices(staticServices);
+                });
+            
+            axios.get('/api/products')
+                .then(res => {
+                    setProducts(res.data);
+                    setFilteredProducts(res.data);
+                })
+                .catch(err => {
+                    console.log('API not available, using static data');
+                    setProducts(staticProducts);
+                    setFilteredProducts(staticProducts);
+                });
+            
+            axios.get('/api/news')
+                .then(res => setNews(res.data))
+                .catch(err => {
+                    console.log('API not available, using static data');
+                    setNews(staticNews);
+                });
+        }
     }, []);
 
     useEffect(() => {
@@ -32,17 +86,43 @@ const Homepage = () => {
     
     const handleContactSubmit = async (e) => {
         e.preventDefault();
-        try {
-            const res = await axios.post('/api/contact', contactForm);
-            setFormMessage(res.data.msg);
+        const isProduction = window.location.hostname.includes('github.io');
+        
+        if (isProduction) {
+            // For GitHub Pages deployment, show a demo message
+            setFormMessage('Thank you for your message! (This is a demo - message not actually sent)');
             setContactForm({ name: '', message: '' });
-        } catch (error) {
-            setFormMessage('Failed to send message. Please try again.');
+        } else {
+            // For local development, try to send to API
+            try {
+                const res = await axios.post('/api/contact', contactForm);
+                setFormMessage(res.data.msg);
+                setContactForm({ name: '', message: '' });
+            } catch (error) {
+                setFormMessage('Thank you for your message! (Demo mode - backend not available)');
+                setContactForm({ name: '', message: '' });
+            }
         }
     };
 
+    const isProduction = window.location.hostname.includes('github.io');
+
     return (
         <div className="container">
+            {isProduction && (
+                <div style={{
+                    background: '#e3f2fd',
+                    padding: '10px',
+                    borderRadius: '5px',
+                    marginBottom: '20px',
+                    textAlign: 'center',
+                    border: '1px solid #2196f3'
+                }}>
+                    <strong>🌟 Demo Mode:</strong> This is a live demo running on GitHub Pages. 
+                    All functionality works with sample data. For full backend features, 
+                    please run locally following the README instructions.
+                </div>
+            )}
             <header className="hero">
                 <h1>Connecting Rural Communities</h1>
                 <p>Your one-stop platform for essential groceries, medicines, and services.</p>

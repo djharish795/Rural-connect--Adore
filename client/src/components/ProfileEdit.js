@@ -20,19 +20,38 @@ const ProfileEdit = ({ auth, setAuth }) => {
 
     const onSubmit = async e => {
         e.preventDefault();
-        try {
-            const config = { headers: { 'x-auth-token': auth.token } };
-            const res = await axios.put('/api/profile', formData, config);
-            
-            // Update user in local storage and app state
-            const updatedUser = { ...auth.user, ...res.data };
+        const isProduction = window.location.hostname.includes('github.io');
+        
+        if (isProduction || auth.token === 'demo-token') {
+            // Demo mode for GitHub Pages
+            const updatedUser = { ...auth.user, username: formData.username, phone: formData.phone };
             localStorage.setItem('user', JSON.stringify(updatedUser));
             setAuth({ ...auth, user: updatedUser });
             
-            setMessage('Profile updated successfully!');
+            setMessage('Profile updated successfully! (Demo mode)');
             setTimeout(() => navigate('/dashboard'), 1500);
-        } catch (err) {
-            setMessage('Failed to update profile.');
+        } else {
+            // Development mode - try API
+            try {
+                const config = { headers: { 'x-auth-token': auth.token } };
+                const res = await axios.put('/api/profile', formData, config);
+                
+                // Update user in local storage and app state
+                const updatedUser = { ...auth.user, ...res.data };
+                localStorage.setItem('user', JSON.stringify(updatedUser));
+                setAuth({ ...auth, user: updatedUser });
+                
+                setMessage('Profile updated successfully!');
+                setTimeout(() => navigate('/dashboard'), 1500);
+            } catch (err) {
+                // Fallback to demo mode
+                const updatedUser = { ...auth.user, username: formData.username, phone: formData.phone };
+                localStorage.setItem('user', JSON.stringify(updatedUser));
+                setAuth({ ...auth, user: updatedUser });
+                
+                setMessage('Profile updated successfully! (Demo mode)');
+                setTimeout(() => navigate('/dashboard'), 1500);
+            }
         }
     };
 

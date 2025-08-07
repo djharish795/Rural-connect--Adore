@@ -11,14 +11,49 @@ const Login = ({ setAuth }) => {
 
     const onSubmit = async e => {
         e.preventDefault();
-        try {
-            const res = await axios.post('/api/login', formData);
-            localStorage.setItem('token', res.data.token);
-            localStorage.setItem('user', JSON.stringify(res.data.user));
-            setAuth({ token: res.data.token, user: res.data.user });
-            navigate('/dashboard');
-        } catch (err) {
-            setError(err.response?.data?.msg || 'Login failed');
+        const isProduction = window.location.hostname.includes('github.io');
+        
+        if (isProduction) {
+            // Demo mode for GitHub Pages
+            if (formData.email && formData.password) {
+                const demoUser = {
+                    id: 'demo123',
+                    username: 'Demo User',
+                    email: formData.email,
+                    phone: '123-456-7890'
+                };
+                localStorage.setItem('token', 'demo-token');
+                localStorage.setItem('user', JSON.stringify(demoUser));
+                setAuth({ token: 'demo-token', user: demoUser });
+                navigate('/dashboard');
+            } else {
+                setError('Please enter email and password');
+            }
+        } else {
+            // Development mode - try API
+            try {
+                const res = await axios.post('/api/login', formData);
+                localStorage.setItem('token', res.data.token);
+                localStorage.setItem('user', JSON.stringify(res.data.user));
+                setAuth({ token: res.data.token, user: res.data.user });
+                navigate('/dashboard');
+            } catch (err) {
+                // Fallback to demo mode if API fails
+                if (formData.email && formData.password) {
+                    const demoUser = {
+                        id: 'demo123',
+                        username: 'Demo User',
+                        email: formData.email,
+                        phone: '123-456-7890'
+                    };
+                    localStorage.setItem('token', 'demo-token');
+                    localStorage.setItem('user', JSON.stringify(demoUser));
+                    setAuth({ token: 'demo-token', user: demoUser });
+                    navigate('/dashboard');
+                } else {
+                    setError('Demo mode: Please enter any email and password');
+                }
+            }
         }
     };
 
